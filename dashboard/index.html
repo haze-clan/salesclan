@@ -1,0 +1,228 @@
+<title>Chrome Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #0d0d10;
+    --panel: #17171b;
+    --panel-edge: #2a2a30;
+    --signal: #fcee0a;
+    --signal-dim: #7a730a;
+    --ice: #00e5ff;
+    --redline: #ff2c54;
+    --text-hi: #f0efe9;
+    --text-dim: #87878f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--void);
+    color: var(--text-hi);
+    font-family: "Barlow", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .scanlines {
+    position: fixed; inset: 0; pointer-events: none; z-index: 5;
+    background: repeating-linear-gradient(
+      to bottom, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px,
+      transparent 1px, transparent 3px
+    );
+    mix-blend-mode: overlay;
+  }
+  .page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .mono { font-family: "Share Tech Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  h1, h2, .display { font-family: "Rajdhani", system-ui, sans-serif; text-wrap: balance; }
+  .panel-cut {
+    background: var(--panel);
+    border: 1px solid var(--panel-edge);
+    clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+    padding: 20px 24px;
+    position: relative;
+  }
+  .panel-label {
+    display: block;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--ice);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  /* header */
+  .hud-header { border-color: var(--signal-dim); }
+  .eyebrow {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .header-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  h1 {
+    margin: 0;
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 700;
+    color: var(--signal);
+    letter-spacing: 0.01em;
+    text-shadow: 0 0 18px rgba(252,238,10,0.25);
+  }
+  .level-badge {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 15px;
+    color: var(--void);
+    background: var(--signal);
+    padding: 4px 12px;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .level-badge span { font-size: 20px; font-weight: 700; margin-left: 4px; }
+  .callsign { margin-top: 10px; color: var(--text-dim); font-size: 14px; }
+  /* hero */
+  .hero-top, .hero-bottom { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; }
+  .hero-label { color: var(--text-dim); letter-spacing: 0.1em; font-size: 11px; }
+  .hero-xp { color: var(--text-hi); font-size: 15px; }
+  .xp-bar {
+    margin: 10px 0 12px;
+    height: 14px;
+    background: #000;
+    border: 1px solid var(--panel-edge);
+    position: relative;
+    overflow: hidden;
+  }
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--signal-dim), var(--signal));
+    box-shadow: 0 0 12px rgba(252,238,10,0.55);
+  }
+  .hero-bottom { color: var(--text-dim); margin-top: 4px; }
+  .hero-bottom .mono { color: var(--ice); }
+  .perk {
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px dashed var(--panel-edge);
+    color: var(--text-hi);
+    font-size: 14.5px;
+    line-height: 1.5;
+  }
+  .perk::before { content: "PERK :: "; color: var(--signal); font-family: "Share Tech Mono", monospace; font-size: 12px; }
+  /* mid grid */
+  .mid-grid { display: grid; grid-template-columns: 220px 1fr; gap: 18px; }
+  @media (max-width: 620px) { .mid-grid { grid-template-columns: 1fr; } }
+  .streak-panel { display: flex; flex-direction: column; }
+  .streak-value { font-size: 44px; font-weight: 700; color: var(--signal); line-height: 1; }
+  .streak-value small { font-size: 18px; color: var(--text-dim); margin-left: 4px; }
+  .streak-note { margin-top: 10px; color: var(--text-dim); font-size: 13px; line-height: 1.4; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 480px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-cell { display: flex; flex-direction: column; gap: 2px; }
+  .stat-cell .v { font-family: "Share Tech Mono", monospace; font-size: 20px; color: var(--text-hi); }
+  .stat-cell .k { font-size: 11px; letter-spacing: 0.06em; color: var(--text-dim); text-transform: uppercase; }
+  .stat-cell.revenue .v { color: var(--signal); }
+  /* achievements */
+  .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .ach-chip {
+    border: 1px solid var(--panel-edge);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .ach-chip.unlocked { border-color: var(--signal-dim); background: rgba(252,238,10,0.05); }
+  .ach-chip .name { font-family: "Rajdhani", sans-serif; font-weight: 600; font-size: 15px; }
+  .ach-chip.unlocked .name { color: var(--signal); }
+  .ach-chip.locked .name { color: var(--text-dim); }
+  .ach-chip .desc { font-size: 12px; color: var(--text-dim); line-height: 1.35; }
+  .ach-chip.locked { opacity: 0.65; }
+  .ach-chip .status { font-family: "Share Tech Mono", monospace; font-size: 10px; letter-spacing: 0.1em; }
+  .ach-chip.unlocked .status { color: var(--ice); }
+  .ach-chip.locked .status { color: var(--redline); }
+  /* transmissions */
+  .log-list { display: flex; flex-direction: column; gap: 8px; font-family: "Share Tech Mono", monospace; font-size: 12.5px; }
+  .log-row { display: flex; justify-content: space-between; gap: 12px; color: var(--text-dim); border-bottom: 1px solid var(--panel-edge); padding-bottom: 6px; }
+  .log-row .d { color: var(--text-hi); }
+  .log-row .x { color: var(--signal); }
+  .log-empty { color: var(--text-dim); font-family: "Share Tech Mono", monospace; font-size: 13px; }
+  footer { color: var(--text-dim); font-size: 12.5px; text-align: center; line-height: 1.6; padding: 6px 8px 0; }
+  footer .signal { color: var(--ice); }
+</style>
+
+<div class="scanlines"></div>
+<div class="page">
+  <header class="hud-header panel-cut">
+    <div class="eyebrow">AGENT STATUS // NIGHT CITY NETWATCH</div>
+    <div class="header-row">
+      <h1>Street Kid</h1>
+      <div class="level-badge">LVL<span>1</span></div>
+    </div>
+    <div class="callsign">Rank 1 of 76+ &middot; 0/8 cyberware unlocked</div>
+  </header>
+
+  <section class="hero panel-cut">
+    <div class="hero-top">
+      <span class="hero-label">EXPERIENCE</span>
+      <span class="hero-xp mono">0 / 100 XP</span>
+    </div>
+    <div class="xp-bar"><div class="xp-fill" style="width:0.0%"></div></div>
+    <div class="hero-bottom">
+      <span class="mono">TOTAL 0 XP</span>
+      <span class="mono">NEXT :: Edgerunner Recruit @ Lvl 2</span>
+    </div>
+    <p class="perk">Basic Comms Implant — cold outreach no longer makes you flinch.</p>
+  </section>
+
+  <div class="mid-grid">
+    <section class="panel-cut streak-panel">
+      <span class="panel-label">Streak</span>
+      <div class="streak-value mono">0<small>days</small></div>
+      <div class="streak-note">No active streak. Log today's numbers to start one.</div>
+    </section>
+    <section class="panel-cut">
+      <span class="panel-label">Career Log</span>
+      <div class="stat-grid">
+        <div class="stat-cell"><span class="v mono">0</span><span class="k">Calls</span></div>
+        <div class="stat-cell"><span class="v mono">0</span><span class="k">Emails</span></div>
+        <div class="stat-cell"><span class="v mono">0</span><span class="k">Follow-ups</span></div>
+        <div class="stat-cell"><span class="v mono">0</span><span class="k">Meetings Booked</span></div>
+        <div class="stat-cell"><span class="v mono">0</span><span class="k">Demos Run</span></div>
+        <div class="stat-cell"><span class="v mono">0</span><span class="k">Proposals Sent</span></div>
+        <div class="stat-cell"><span class="v mono">0</span><span class="k">Referrals</span></div>
+        <div class="stat-cell"><span class="v mono">0</span><span class="k">Deals Closed</span></div>
+        <div class="stat-cell revenue"><span class="v mono">$0</span><span class="k">Career Revenue</span></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel-cut">
+    <span class="panel-label">Cyberware // Achievements</span>
+    <div class="ach-grid">
+      <div class="ach-chip locked"><span class="name">First Blood</span><span class="desc">Close your first deal.</span><span class="status">LOCKED</span></div>
+      <div class="ach-chip locked"><span class="name">Cold Call Cyborg</span><span class="desc">50+ calls in a single day.</span><span class="status">LOCKED</span></div>
+      <div class="ach-chip locked"><span class="name">Big Score</span><span class="desc">Close $10,000+ in a single day.</span><span class="status">LOCKED</span></div>
+      <div class="ach-chip locked"><span class="name">Whale Hunter</span><span class="desc">Close $50,000+ in a single day.</span><span class="status">LOCKED</span></div>
+      <div class="ach-chip locked"><span class="name">Combo Breaker</span><span class="desc">Hit a 7-day logging streak.</span><span class="status">LOCKED</span></div>
+      <div class="ach-chip locked"><span class="name">Chrome Veteran</span><span class="desc">Hit a 30-day logging streak.</span><span class="status">LOCKED</span></div>
+      <div class="ach-chip locked"><span class="name">Referral Network</span><span class="desc">5+ career referrals.</span><span class="status">LOCKED</span></div>
+      <div class="ach-chip locked"><span class="name">Legend of Night City</span><span class="desc">Reach the top rank.</span><span class="status">LOCKED</span></div>
+    </div>
+  </section>
+
+  <section class="panel-cut">
+    <span class="panel-label">Transmission Log</span>
+    <div class="log-list">
+      <div class="log-empty">SIGNAL: NONE — no transmissions logged yet. New game, choppa. Tell Claude your first day's numbers to boot the terminal.</div>
+    </div>
+  </section>
+
+  <footer>
+    Report today's numbers to Claude in chat to log a new transmission.<br>
+    <span class="signal">SIGNAL LAST SYNCED :: NEVER</span>
+  </footer>
+</div>

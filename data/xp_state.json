@@ -1,0 +1,19 @@
+{
+  "total_xp": 0,
+  "level": 1,
+  "streak": 0,
+  "last_log_date": null,
+  "totals": {
+    "calls": 0,
+    "emails": 0,
+    "follow_ups": 0,
+    "meetings_booked": 0,
+    "demos": 0,
+    "proposals_sent": 0,
+    "referrals": 0,
+    "deals_closed": 0
+  },
+  "totals_revenue": 0,
+  "achievements": [],
+  "history": []
+}
