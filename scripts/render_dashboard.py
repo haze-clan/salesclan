@@ -7,12 +7,14 @@ so the flow is: log_day.py -> render_dashboard.py -> publish the artifact).
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from string import Template
 
 import xp_engine as xp
 
 OUT_PATH = xp.REPO_ROOT / "dashboard" / "index.html"
+MANIFEST_PATH = xp.REPO_ROOT / "dashboard" / "manifest.webmanifest"
 ICON_B64_PATH = xp.REPO_ROOT / "dashboard" / "icons" / "apple-touch-icon-180.b64.txt"
 
 STAT_ORDER = [
@@ -33,6 +35,7 @@ PAGE_TEMPLATE = Template(r"""<title>Chrome Ledger</title>
 <meta name="apple-mobile-web-app-title" content="Chrome Ledger">
 <meta name="theme-color" content="#0d0d10">
 <link rel="apple-touch-icon" href="data:image/png;base64,$icon_b64">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
@@ -325,12 +328,36 @@ def render(state: dict) -> str:
     )
 
 
+def render_manifest() -> str:
+    icon_b64 = ICON_B64_PATH.read_text().strip()
+    manifest = {
+        "name": "Chrome Ledger",
+        "short_name": "Chrome Ledger",
+        "start_url": ".",
+        "scope": ".",
+        "display": "standalone",
+        "background_color": "#0d0d10",
+        "theme_color": "#0d0d10",
+        "icons": [
+            {
+                "src": f"data:image/png;base64,{icon_b64}",
+                "sizes": "180x180",
+                "type": "image/png",
+            }
+        ],
+    }
+    return json.dumps(manifest, indent=2)
+
+
 def main() -> None:
     state = xp.load_state()
     html = render(state)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(html)
     print(f"Wrote {OUT_PATH}")
+
+    MANIFEST_PATH.write_text(render_manifest())
+    print(f"Wrote {MANIFEST_PATH}")
 
 
 if __name__ == "__main__":
