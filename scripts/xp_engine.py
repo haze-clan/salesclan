@@ -45,6 +45,9 @@ STAT_LABELS: dict[str, str] = {
     "revenue": "Revenue ($)",
 }
 
+BASE_SALARY_ANNUAL = 35_000
+BASE_SALARY_DAILY = BASE_SALARY_ANNUAL / 365  # accrues into career revenue only, no XP
+
 REVENUE_XP_RATE = 1 / 20  # 1 XP per $20 of revenue closed that day
 BIG_DEAL_THRESHOLD = 10_000
 BIG_DEAL_BONUS = 500
@@ -227,6 +230,8 @@ EMPTY_STATE = {
     "last_log_date": None,
     "totals": {k: 0 for k in STAT_WEIGHTS},
     "totals_revenue": 0,
+    "totals_salary_accrued": 0,
+    "salary_last_accrual_date": None,
     "achievements": [],
     "history": [],
 }
@@ -298,6 +303,18 @@ def log_day(state: dict, stats: dict, log_date: date | None = None) -> dict:
         state["totals"][k] = state["totals"].get(k, 0) + stats[k]
     state["totals_revenue"] = state.get("totals_revenue", 0) + stats["revenue"]
 
+    # --- base salary accrual: guaranteed comp, folded into career revenue,
+    # but never into XP or the single-day sales bonuses ---
+    last_salary_date = state.get("salary_last_accrual_date")
+    if last_salary_date is None:
+        salary_days = 1
+    else:
+        salary_days = max((log_date - date.fromisoformat(last_salary_date)).days, 0)
+    salary_accrued = round(salary_days * BASE_SALARY_DAILY, 2)
+    state["totals_salary_accrued"] = state.get("totals_salary_accrued", 0) + salary_accrued
+    state["totals_revenue"] += salary_accrued
+    state["salary_last_accrual_date"] = date_str
+
     levels_gained = list(range(old_level + 1, new_level + 1))
 
     newly_unlocked = []
@@ -341,4 +358,7 @@ def log_day(state: dict, stats: dict, log_date: date | None = None) -> dict:
         "new_title": new_title,
         "new_perk": new_perk,
         "newly_unlocked": newly_unlocked,
+        "salary_accrued": salary_accrued,
+        "salary_days": salary_days,
+        "totals_salary_accrued": state["totals_salary_accrued"],
     }

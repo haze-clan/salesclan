@@ -49,6 +49,15 @@ Bonuses:
 day adds +1% to that day's total XP, capped at +30% at a 30-day streak
 ("combat stims maxed"). Miss a day and the streak resets to 1.
 
+**Base salary:** a $35k/yr base ($95.89/day) accrues into career revenue
+every time a day is logged, based on calendar days since the last log (so
+it doesn't double-count a same-day relog and doesn't skip days that go
+unlogged). It only affects the cumulative Career Revenue figure and the
+revenue-milestone achievements below — it earns no XP and doesn't count
+toward the single-day $10k/$50k bonuses, which stay tied to actual deals
+closed. The dashboard breaks out how much of Career Revenue is base salary
+vs. sales.
+
 **Leveling curve:** XP to go from level `n` to `n+1` is
 `round(100 * n^1.5 / 10) * 10` — early levels come fast, later ones take a
 real grind, same shape as most RPG curves.

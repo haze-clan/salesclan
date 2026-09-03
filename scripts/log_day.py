@@ -83,6 +83,8 @@ def main() -> None:
     print()
     print(f"   Streak x{report['multiplier']:.2f} ({report['streak']}d)" + ("  [STREAK BROKEN, RESET]" if report["streak_broken"] else ""))
     print(f"   >>> +{report['day_xp']} XP <<<")
+    if report["salary_accrued"]:
+        print(f"   + ${report['salary_accrued']:,.2f} base salary accrued ({report['salary_days']}d) -> career revenue")
 
     if report["levels_gained"]:
         print(f"\n*** LEVEL UP: {report['old_level']} -> {report['new_level']} ***")

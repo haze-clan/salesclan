@@ -163,6 +163,7 @@ PAGE_TEMPLATE = Template(r"""<title>Chrome Ledger</title>
   .stat-cell .v { font-family: "Share Tech Mono", monospace; font-size: 20px; color: var(--text-hi); }
   .stat-cell .k { font-size: 11px; letter-spacing: 0.06em; color: var(--text-dim); text-transform: uppercase; }
   .stat-cell.revenue .v { color: var(--signal); }
+  .salary-note { font-size: 10px; color: var(--text-dim); font-family: "Share Tech Mono", monospace; }
   /* achievements */
   .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
   .ach-chip {
@@ -275,9 +276,11 @@ def render(state: dict) -> str:
             f'<div class="stat-cell"><span class="v mono">{totals.get(key, 0)}</span>'
             f'<span class="k">{xp.STAT_LABELS[key]}</span></div>'
         )
+    salary_accrued = state.get("totals_salary_accrued", 0)
     stat_cells.append(
         f'<div class="stat-cell revenue"><span class="v mono">${state.get("totals_revenue", 0):,.0f}</span>'
-        f'<span class="k">Career Revenue</span></div>'
+        f'<span class="k">Career Revenue</span>'
+        f'<span class="salary-note">incl. ${salary_accrued:,.0f} base salary</span></div>'
     )
 
     unlocked = set(state.get("achievements", []))
