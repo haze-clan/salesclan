@@ -77,10 +77,20 @@ Full text (titles + perk flavor) lives in `RANKS` in `scripts/xp_engine.py`.
 
 ## Achievements
 
-First Blood, Cold Call Cyborg (50+ calls/day), Big Score ($10k+/day), Whale
-Hunter ($50k+/day), Combo Breaker (7-day streak), Chrome Veteran (30-day
-streak), Referral Network (5+ career referrals), Legend of Night City
-(max rank). See `ACHIEVEMENTS` in `scripts/xp_engine.py`.
+**Onboarding** — Jacked In (log your first day), First Contact (first
+meeting booked), First Client (first deal closed).
+
+**Career revenue ladder** (cumulative, not single-day) — First 5K, First
+10K, 25K Club, Six Figures.
+
+**Volume / single-day feats** — Referral Network (5+ career referrals),
+Cold Call Cyborg (50+ calls/day), Big Score ($10k+ in a single day), Whale
+Hunter ($50k+ in a single day).
+
+**Streaks & endgame** — Combo Breaker (7-day streak), Chrome Veteran
+(30-day streak), Legend of Night City (max rank).
+
+14 total. See `ACHIEVEMENTS` in `scripts/xp_engine.py`.
 
 ## Files
 

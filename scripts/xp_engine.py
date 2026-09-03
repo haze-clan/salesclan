@@ -131,12 +131,51 @@ def _totals(state: dict) -> dict:
     return state["totals"]
 
 
+# Cumulative career-revenue milestones — deliberately small early rungs so
+# there's something to unlock well before the single-day bonuses hit.
+REVENUE_MILESTONES: list[tuple[str, str, int]] = [
+    ("first_5k", "First 5K", 5_000),
+    ("first_10k", "First 10K", 10_000),
+    ("25k_club", "25K Club", 25_000),
+    ("six_figures", "Six Figures", 100_000),
+]
+
 ACHIEVEMENTS: list[Achievement] = [
+    # --- onboarding: small, close, one per early action ---
     Achievement(
-        "first_blood",
-        "First Blood",
+        "jacked_in",
+        "Jacked In",
+        "Log your first day.",
+        lambda s, d, xp: s.get("last_log_date") is not None,
+    ),
+    Achievement(
+        "first_contact",
+        "First Contact",
+        "Book your first meeting.",
+        lambda s, d, xp: _totals(s).get("meetings_booked", 0) >= 1,
+    ),
+    Achievement(
+        "first_client",
+        "First Client",
         "Close your first deal.",
         lambda s, d, xp: _totals(s).get("deals_closed", 0) >= 1,
+    ),
+    # --- career revenue ladder ---
+    *[
+        Achievement(
+            mid,
+            name,
+            f"${threshold:,}+ in total career revenue.",
+            lambda s, d, xp, _t=threshold: s.get("totals_revenue", 0) >= _t,
+        )
+        for mid, name, threshold in REVENUE_MILESTONES
+    ],
+    # --- volume / single-day feats ---
+    Achievement(
+        "referral_network",
+        "Referral Network",
+        "5+ career referrals.",
+        lambda s, d, xp: _totals(s).get("referrals", 0) >= 5,
     ),
     Achievement(
         "cold_call_cyborg",
@@ -156,6 +195,7 @@ ACHIEVEMENTS: list[Achievement] = [
         f"Close ${WHALE_THRESHOLD:,}+ in a single day.",
         lambda s, d, xp: d.get("revenue", 0) >= WHALE_THRESHOLD,
     ),
+    # --- streaks & endgame ---
     Achievement(
         "combo_breaker",
         "Combo Breaker",
@@ -167,12 +207,6 @@ ACHIEVEMENTS: list[Achievement] = [
         "Chrome Veteran",
         "Hit a 30-day logging streak.",
         lambda s, d, xp: s.get("streak", 0) >= 30,
-    ),
-    Achievement(
-        "referral_network",
-        "Referral Network",
-        "5+ career referrals.",
-        lambda s, d, xp: _totals(s).get("referrals", 0) >= 5,
     ),
     Achievement(
         "legend_of_night_city",
