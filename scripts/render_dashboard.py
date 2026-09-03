@@ -13,6 +13,7 @@ from string import Template
 import xp_engine as xp
 
 OUT_PATH = xp.REPO_ROOT / "dashboard" / "index.html"
+ICON_B64_PATH = xp.REPO_ROOT / "dashboard" / "icons" / "apple-touch-icon-180.b64.txt"
 
 STAT_ORDER = [
     "calls",
@@ -26,6 +27,12 @@ STAT_ORDER = [
 ]
 
 PAGE_TEMPLATE = Template(r"""<title>Chrome Ledger</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chrome Ledger">
+<meta name="theme-color" content="#0d0d10">
+<link rel="apple-touch-icon" href="data:image/png;base64,$icon_b64">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
@@ -295,8 +302,10 @@ def render(state: dict) -> str:
         log_rows_html = '<div class="log-empty">SIGNAL: NONE — no transmissions logged yet. New game, choppa. Tell Claude your first day\'s numbers to boot the terminal.</div>'
 
     last_sync = state.get("last_log_date") or "NEVER"
+    icon_b64 = ICON_B64_PATH.read_text().strip()
 
     return PAGE_TEMPLATE.substitute(
+        icon_b64=icon_b64,
         rank_title=title,
         level=level,
         callsign_line=f"Rank {level} of {xp.RANKS[-1][0]}+ &middot; {len(unlocked)}/{len(xp.ACHIEVEMENTS)} cyberware unlocked",
