@@ -47,7 +47,10 @@ Bonuses:
 
 **Streaks:** logging stats on consecutive days builds a streak. Each streak
 day adds +1% to that day's total XP, capped at +30% at a 30-day streak
-("combat stims maxed"). Miss a day and the streak resets to 1.
+("combat stims maxed"). Streaks are weekday-aware: only a missed Monday-Friday
+breaks it. A weekend with no log is free and doesn't reset anything -- and if
+you do work and log a Saturday or Sunday, that day still adds to the streak
+like any other.
 
 **Base salary:** a $35k/yr base ($95.89/day) accrues into career revenue
 every time a day is logged, based on calendar days since the last log (so

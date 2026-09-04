@@ -263,11 +263,11 @@ def render(state: dict) -> str:
     streak = state.get("streak", 0)
     multiplier = 1 + min(max(streak - 1, 0), xp.STREAK_CAP_DAYS) * xp.STREAK_BONUS_PER_DAY
     if streak == 0:
-        streak_note = "No active streak. Log today's numbers to start one."
+        streak_note = "No active streak. Log today's numbers to start one. Weekends are free -- only a missed weekday breaks it."
     elif streak >= xp.STREAK_CAP_DAYS:
-        streak_note = "Combat stims maxed: +30% XP on every log."
+        streak_note = "Combat stims maxed: +30% XP on every log. Weekends are free -- only a missed weekday breaks it."
     else:
-        streak_note = f"+{round((multiplier - 1) * 100)}% XP multiplier active. Keep the streak alive."
+        streak_note = f"+{round((multiplier - 1) * 100)}% XP multiplier active. Weekends are free -- only a missed weekday breaks it."
 
     totals = state.get("totals", {})
     stat_cells = []

@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import math
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -253,6 +253,20 @@ def save_state(state: dict) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _missed_weekday_between(last_date: date, log_date: date) -> bool:
+    """True if any Mon-Fri falls strictly between last_date and log_date.
+
+    Weekends are never required logging days, so a gap that only spans a
+    Saturday/Sunday (or both) doesn't count as a miss.
+    """
+    d = last_date + timedelta(days=1)
+    while d < log_date:
+        if d.weekday() < 5:  # Mon=0 .. Fri=4
+            return True
+        d += timedelta(days=1)
+    return False
+
+
 def log_day(state: dict, stats: dict, log_date: date | None = None) -> dict:
     """Apply one day's stats to `state` in place. Returns a report dict."""
     log_date = log_date or date.today()
@@ -260,20 +274,23 @@ def log_day(state: dict, stats: dict, log_date: date | None = None) -> dict:
 
     stats = {k: stats.get(k, 0) for k in list(STAT_WEIGHTS) + ["revenue"]}
 
-    # --- streak ---
+    # --- streak (weekday-aware: a gap that's only weekends never breaks it) ---
     old_streak = state.get("streak", 0)
     last = state.get("last_log_date")
     if last is None:
         streak = 1
+        streak_broken = False
     else:
-        delta = (log_date - date.fromisoformat(last)).days
-        if delta == 0:
+        last_date = date.fromisoformat(last)
+        if log_date == last_date:
             streak = old_streak or 1
-        elif delta == 1:
-            streak = old_streak + 1
-        else:
+            streak_broken = False
+        elif _missed_weekday_between(last_date, log_date):
             streak = 1
-    streak_broken = last is not None and (log_date - date.fromisoformat(last)).days > 1
+            streak_broken = True
+        else:
+            streak = old_streak + 1
+            streak_broken = False
 
     # --- XP math ---
     base_xp = sum(stats[k] * w for k, w in STAT_WEIGHTS.items())
